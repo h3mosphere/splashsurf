@@ -4,11 +4,12 @@ use crate::marching_cubes::narrow_band_extraction::{
     construct_mc_input, construct_mc_input_with_stitching_data,
 };
 use crate::marching_cubes::triangulation::{
-    triangulate, triangulate_with_criterion, DebugTriangleGenerator, TriangulationSkipBoundaryCells,
+    triangulate, triangulate_with_criterion, DebugTriangleGenerator,
+    TriangulationIdentityCriterion, TriangulationSkipBoundaryCells, TriangulationWithinAABB,
 };
 use crate::mesh::TriMesh3d;
 use crate::uniform_grid::{DummySubdomain, OwningSubdomainGrid, Subdomain};
-use crate::{new_map, profile, DensityMap, Index, MapType, Real, UniformGrid};
+use crate::{new_map, profile, DensityMap, Index, MapType, Parameters, Real, UniformGrid};
 use nalgebra::Vector3;
 use thiserror::Error as ThisError;
 
@@ -116,12 +117,12 @@ impl<I: Index> Default for MarchingCubesInput<I> {
 pub fn triangulate_density_map<I: Index, R: Real>(
     grid: &UniformGrid<I, R>,
     density_map: &DensityMap<I, R>,
-    iso_surface_threshold: R,
+    parameters: &Parameters<R>,
 ) -> Result<TriMesh3d<R>, MarchingCubesError> {
     profile!("triangulate_density_map");
 
     let mut mesh = TriMesh3d::default();
-    triangulate_density_map_append(grid, None, density_map, iso_surface_threshold, &mut mesh)?;
+    triangulate_density_map_append(grid, None, density_map, parameters, &mut mesh)?;
     Ok(mesh)
 }
 
@@ -130,7 +131,7 @@ pub fn triangulate_density_map_append<I: Index, R: Real>(
     grid: &UniformGrid<I, R>,
     subdomain: Option<&OwningSubdomainGrid<I, R>>,
     density_map: &DensityMap<I, R>,
-    iso_surface_threshold: R,
+    parameters: &Parameters<R>,
     mesh: &mut TriMesh3d<R>,
 ) -> Result<(), MarchingCubesError> {
     profile!("triangulate_density_map_append");
@@ -139,7 +140,7 @@ pub fn triangulate_density_map_append<I: Index, R: Real>(
         construct_mc_input(
             subdomain,
             &density_map,
-            iso_surface_threshold,
+            parameters.iso_surface_threshold,
             &mut mesh.vertices,
         )
     } else {
@@ -147,12 +148,38 @@ pub fn triangulate_density_map_append<I: Index, R: Real>(
         construct_mc_input(
             &subdomain,
             &density_map,
-            iso_surface_threshold,
+            parameters.iso_surface_threshold,
             &mut mesh.vertices,
         )
     };
 
-    triangulate(marching_cubes_data, mesh)?;
+    // TODO: This doesnt work with &dyn being passed to triangulate_with_criterion
+    // let triangulation_criterion: &dyn TriangulationCriterion<I, R, OwningSubdomainGrid<I, R>> =
+    //     if let Some(aabb) = parameters.triangulation_aabb {
+    //         &TriangulationIdentityCriterion
+    //     } else {
+    //         &TriangulationIdentityCriterion
+    //     };
+
+    if let Some(aabb) = &parameters.triangulation_aabb {
+        let criterion = TriangulationWithinAABB::new(aabb.clone());
+        triangulate_with_criterion(
+            &DummySubdomain::new(grid),
+            marching_cubes_data,
+            mesh,
+            criterion,
+            DebugTriangleGenerator,
+        )?;
+    } else {
+        triangulate_with_criterion(
+            &DummySubdomain::new(grid),
+            marching_cubes_data,
+            mesh,
+            TriangulationIdentityCriterion,
+            DebugTriangleGenerator,
+        )?;
+    }
+
     Ok(())
 }
 

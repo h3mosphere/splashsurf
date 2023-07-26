@@ -670,7 +670,7 @@ pub(crate) fn reconstruct_single_surface_append<'a, I: Index, R: Real>(
         grid,
         subdomain_grid,
         &density_map,
-        parameters.iso_surface_threshold,
+        parameters,
         output_mesh,
     )?;
 

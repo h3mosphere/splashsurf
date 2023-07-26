@@ -200,6 +200,9 @@ pub struct Parameters<R: Real> {
     /// Manually restrict the domain to the surface reconstruction.
     /// If not provided, the smallest AABB enclosing all particles is computed instead.
     pub domain_aabb: Option<Aabb3d<R>>,
+    /// Manually restrict the domain to the surface triangulation.
+    /// If not provided, the smallest AABB enclosing all particles is computed instead.
+    pub triangulation_aabb: Option<Aabb3d<R>>,
     /// Whether to allow multi threading within the surface reconstruction procedure
     pub enable_multi_threading: bool,
     /// Each subdomain will be a cube consisting of this number of MC cube cells along each coordinate axis
@@ -219,6 +222,7 @@ impl<R: Real> Parameters<R> {
             cube_size: self.cube_size.try_convert()?,
             iso_surface_threshold: self.iso_surface_threshold.try_convert()?,
             domain_aabb: map_option!(&self.domain_aabb, aabb => aabb.try_convert()?),
+            triangulation_aabb: map_option!(&self.triangulation_aabb, aabb => aabb.try_convert()?),
             enable_multi_threading: self.enable_multi_threading,
             subdomain_num_cubes_per_dim: self.subdomain_num_cubes_per_dim,
             spatial_decomposition: map_option!(&self.spatial_decomposition, sd => sd.try_convert()?),

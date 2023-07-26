@@ -16,6 +16,7 @@ fn parameters_canyon() -> Parameters<f32> {
         cube_size,
         iso_surface_threshold: 0.6,
         domain_aabb: None,
+        triangulation_aabb: None,
         enable_multi_threading: true,
         subdomain_num_cubes_per_dim: Some(32),
         spatial_decomposition: None,

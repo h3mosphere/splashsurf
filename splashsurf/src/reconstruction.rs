@@ -404,6 +404,7 @@ mod arguments {
                 cube_size,
                 iso_surface_threshold: args.surface_threshold,
                 domain_aabb,
+                triangulation_aabb: None,
                 subdomain_num_cubes_per_dim: args
                     .subdomain_grid
                     .into_bool()

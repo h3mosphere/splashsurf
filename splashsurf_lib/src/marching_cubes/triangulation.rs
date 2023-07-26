@@ -3,7 +3,7 @@ use crate::marching_cubes::{CellData, MarchingCubesInput};
 use crate::mesh::TriMesh3d;
 use crate::topology::Axis;
 use crate::uniform_grid::{DummySubdomain, GridBoundaryFaceFlags, Subdomain, UniformGrid};
-use crate::{profile, Index, Real};
+use crate::{profile, Aabb3d, Index, Real};
 use anyhow::Context;
 use log::trace;
 use nalgebra::Vector3;
@@ -35,6 +35,10 @@ pub(crate) struct TriangulationSkipBoundaryCells;
 /// A triangulation criterion that ensures that only the interior of the stitching domain is triangulated (boundary layer except in stitching direction is skipped)
 pub(crate) struct TriangulationStitchingInterior {
     stitching_axis: Axis,
+}
+
+pub struct TriangulationWithinAABB<R: Real> {
+    aabb: Aabb3d<R>,
 }
 
 /// Trait that is used by the marching cubes [triangulate_with_criterion] function to convert a marching cubes triangulation to actual triangle-vertex connectivity
@@ -219,6 +223,27 @@ impl<I: Index, R: Real, S: Subdomain<I, R>, C: TriangulationCriterion<I, R, S>>
 
         self.triangulation_criterion
             .triangulate_cell(subdomain, flat_cell_index, cell_data)
+    }
+}
+
+impl<R: Real> TriangulationWithinAABB<R> {
+    pub fn new(aabb: Aabb3d<R>) -> Self {
+        Self { aabb }
+    }
+}
+impl<I: Index, R: Real, S: Subdomain<I, R>> TriangulationCriterion<I, R, S>
+    for TriangulationWithinAABB<R>
+{
+    #[inline(always)]
+    fn triangulate_cell(&self, subdomain: &S, flat_cell_index: I, _: &CellData) -> bool {
+        let global_cell = subdomain
+            .global_grid()
+            .try_unflatten_cell_index(flat_cell_index)
+            .unwrap();
+
+        let cell_aabb = subdomain.global_grid().cell_aabb(&global_cell);
+
+        self.aabb.contains_aabb(&cell_aabb)
     }
 }
 

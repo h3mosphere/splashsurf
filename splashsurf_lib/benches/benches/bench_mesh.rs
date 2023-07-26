@@ -22,6 +22,7 @@ fn reconstruct_particles<P: AsRef<Path>>(particle_file: P) -> SurfaceReconstruct
         cube_size,
         iso_surface_threshold: 0.6,
         domain_aabb: None,
+        triangulation_aabb: None,
         enable_multi_threading: true,
         subdomain_num_cubes_per_dim: None,
         spatial_decomposition: Some(SpatialDecompositionParameters {

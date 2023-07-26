@@ -36,6 +36,7 @@ fn params_with_aabb<R: Real>(
         cube_size,
         iso_surface_threshold,
         domain_aabb,
+        triangulation_aabb: None,
         enable_multi_threading: false,
         subdomain_num_cubes_per_dim: None,
         spatial_decomposition: None,
