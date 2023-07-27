@@ -59,6 +59,7 @@ pub(crate) struct DebugTriangleGenerator;
 
 /// Converts the marching cubes input cell data into a triangle surface mesh, appends triangles to existing mesh
 #[inline(never)]
+#[allow(unused)]
 pub(crate) fn triangulate<I: Index, R: Real>(
     input: MarchingCubesInput<I>,
     mesh: &mut TriMesh3d<R>,

@@ -4,8 +4,8 @@ use crate::marching_cubes::narrow_band_extraction::{
     construct_mc_input, construct_mc_input_with_stitching_data,
 };
 use crate::marching_cubes::triangulation::{
-    triangulate, triangulate_with_criterion, DebugTriangleGenerator,
-    TriangulationIdentityCriterion, TriangulationSkipBoundaryCells, TriangulationWithinAABB,
+    triangulate_with_criterion, DebugTriangleGenerator, TriangulationIdentityCriterion,
+    TriangulationSkipBoundaryCells, TriangulationWithinAABB,
 };
 use crate::mesh::TriMesh3d;
 use crate::uniform_grid::{DummySubdomain, OwningSubdomainGrid, Subdomain};
@@ -355,7 +355,9 @@ fn assert_cell_data_point_data_consistency<I: Index, R: Real>(
 
 #[test]
 fn test_interpolate_cell_data() {
+    use crate::marching_cubes::triangulation::triangulate;
     use nalgebra::Vector3;
+
     let iso_surface_threshold = 0.25;
     //let default_value = 0.0;
 
